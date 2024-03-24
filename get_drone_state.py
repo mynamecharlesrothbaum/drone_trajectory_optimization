@@ -3,6 +3,8 @@ import math
 import tkinter as tk
 import socket
 
+#stuff
+
 # Configuration
 SIM_COMPUTER_IP = '192.168.1.124'  # IP address of the simulation computer
 PORT = 15000  # The same port as used by the server
