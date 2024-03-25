@@ -2,11 +2,12 @@ from pymavlink import mavutil
 import math
 import tkinter as tk
 import socket
+import time
 
 #stuff
 
 # Configuration
-SIM_COMPUTER_IP = '192.168.1.124'  # IP address of the simulation computer
+SIM_COMPUTER_IP = '192.168.1.110'  # IP address of the simulation computer
 PORT = 15000  # The same port as used by the server
 
 def send_command(command):
@@ -14,8 +15,8 @@ def send_command(command):
         s.connect((SIM_COMPUTER_IP, PORT))
         s.sendall(command.encode('utf-8'))
 
-def start_instance(instance_id):
-    send_command(f"start {instance_id}")
+def start_instance(instance_id, out_port):
+    send_command(f"start {instance_id} {out_port}")
 
 def stop_instance(instance_id):
     send_command(f"stop {instance_id}")
@@ -42,21 +43,29 @@ def get_current_position(connection):
     #print(f"Current Position: Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude} meters")  
 
 def main():
-    start_instance(0)
-
-    drone_connection = connect(14550)
-
-    # Print heartbeat information
-    while True:
-        msg = drone_connection.recv_match(type='HEARTBEAT', blocking=True)
-        if not msg:
-            print("No heartbeat")
-        else:
-            print("Heartbeat received from system (system %u component %u)" % (msg.get_srcSystem(), msg.get_srcComponent()))
-            break  # or remove to keep listening
+    out_port = 14550
 
     while True:
-        lat, lon, alt = get_current_position(drone_connection)
+        start_instance(0, out_port)
+        drone_connection = connect(out_port)
+
+        # Print heartbeat information
+        while True:
+            msg = drone_connection.recv_match(type='HEARTBEAT', blocking=True)
+            if not msg:
+                print("No heartbeat")
+            else:
+                print("Heartbeat received from system (system %u component %u)" % (msg.get_srcSystem(), msg.get_srcComponent()))
+                break  # or remove to keep listening
+
+        for i in range(10):
+            lat, lon, alt = get_current_position(drone_connection)
+            print(f'Latitude = {lat}')
+
+        time.sleep(5)
+
+        print("Yep i am trying to stop")
+        stop_instance(0)
         
 
 if __name__ == "__main__":
