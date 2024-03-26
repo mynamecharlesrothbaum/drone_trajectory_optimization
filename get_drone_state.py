@@ -15,6 +15,21 @@ def send_command(command):
         s.connect((SIM_COMPUTER_IP, PORT))
         s.sendall(command.encode('utf-8'))
 
+def connect_dynamic_port(start_port, max_attempts=10):
+    for attempt in range(max_attempts):
+        port = start_port + attempt
+        try:
+            connection = mavutil.mavlink_connection(f'udpin:0.0.0.0:{port}')
+            connection.wait_heartbeat()  # Wait for the first heartbeat
+            print(f"Connected on UDP port {port}")
+            return connection
+        except OSError as e:
+            if e.errno == 48:  # Address already in use
+                print(f"Port {port} is in use, trying next port.")
+            else:
+                raise
+    raise RuntimeError("Failed to connect using dynamic ports.")
+
 def start_instance(instance_id, out_port):
     send_command(f"start {instance_id} {out_port}")
 
@@ -23,7 +38,7 @@ def stop_instance(instance_id):
 
 
 def connect(port):
-    connection = mavutil.mavlink_connection('udpin:0.0.0.0:14550') 
+    connection = mavutil.mavlink_connection(f'udpin:0.0.0.0:{port}') 
 
     connection.wait_heartbeat() #wait until we hear a heartbeat from the copter
 
@@ -46,6 +61,7 @@ def main():
     out_port = 14550
 
     while True:
+        out_port += 1
         start_instance(0, out_port)
         drone_connection = connect(out_port)
 
