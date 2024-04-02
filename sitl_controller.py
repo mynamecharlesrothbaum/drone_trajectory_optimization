@@ -3,11 +3,12 @@ import math
 import tkinter as tk
 import socket
 import time
+import helper
 
 #stuff
 
 # Configuration
-SIM_COMPUTER_IP = '192.168.1.110'  # IP address of the simulation computer
+SIM_COMPUTER_IP = '192.168.1.124'  # IP address of the simulation computer
 PORT = 15000  # The same port as used by the server
 
 def send_command(command):
@@ -59,10 +60,13 @@ def get_current_position(connection):
 
 def main():
     out_port = 14550
+    pid = 0
 
     while True:
         out_port += 1
-        start_instance(0, out_port)
+        pid += 1
+        start_instance(pid, out_port)
+        print(f"starting instance {pid} on port {out_port}")
         drone_connection = connect(out_port)
 
         # Print heartbeat information
@@ -74,11 +78,19 @@ def main():
                 print("Heartbeat received from system (system %u component %u)" % (msg.get_srcSystem(), msg.get_srcComponent()))
                 break  # or remove to keep listening
 
-        for i in range(10):
+        for i in range(20):
             lat, lon, alt = get_current_position(drone_connection)
-            print(f'Latitude = {lat}')
+            print(f'lat: {lat}')
+            print(f'lon: {lon}')
+            print(f'alt: {alt}')
+            
+            helper.collect_positions(lat, lon, alt)
+        print("Data collected, time to end this simulation")
 
-        time.sleep(5)
+        print("plotting trajectory...")
+        helper.plot_trajectory()
+        print("resetting trajectory...")
+        helper.reset_trajectory()
 
         print("Yep i am trying to stop")
         stop_instance(0)
