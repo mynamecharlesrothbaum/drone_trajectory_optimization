@@ -6,21 +6,17 @@ import time
 
 host = '0.0.0.0'
 port = 15000
-
-# A dictionary to keep track of processes
 processes = {}
 
 def start_instance_sitl(instance_id, out_port):
-    # Define the base path to the ArduPilot's directory
+    #base path to the ArduPilot's directory
     ardupilot_base_path = "/home/robotics/ardupilot"
-    arducopter_path = os.path.join(ardupilot_base_path, "ArduCopter")  # Adjusted to point to the ArduCopter directory
+    arducopter_path = os.path.join(ardupilot_base_path, "ArduCopter") 
     
-    # Define the full path to the ArduPilot's sim_vehicle.py script
-    # No need to append "sim_vehicle.py" to cmd as we're specifying it directly in the command
     sim_vehicle_script = os.path.join(ardupilot_base_path, "Tools/autotest/sim_vehicle.py")
     
-    # Define the command to run sim_vehicle.py with appropriate flags
-    cmd = f"python3 {sim_vehicle_script} -v ArduCopter --instance {instance_id} --out 192.168.1.40:{out_port}"
+    # Define the command to run sim_vehicle.py
+    cmd = f"python3 {sim_vehicle_script} -v ArduCopter --speedup=10 --disable-ekf3 --instance {instance_id} --out 192.168.1.102:{out_port}"
     
     # Start the process in the ArduCopter directory
     process = subprocess.Popen(cmd, shell=True, cwd=arducopter_path, preexec_fn=os.setsid)
